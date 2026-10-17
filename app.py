@@ -86,20 +86,18 @@ def home():
   })
 
 
-@app.route("/api", methods=["GET", "POST"])
+@app.route("/api", methods=["GET"])
 def query_nid():
-  # GET অথবা POST উভয় মাধ্যম থেকেই ডাটা গ্রহণ করা যাবে
-  if request.method == "POST":
-    data = request.get_json() or request.form
-    nid = data.get("nid")
-    dob = data.get("dob")
-  else:
-    nid = request.args.get("nid")
-    dob = request.args.get("dob")
+  # শুধুমাত্র GET মেথডের মাধ্যমে nid ও dob ইনপুট নেওয়া হচ্ছে
+  nid = request.args.get("nid")
+  dob = request.args.get("dob")
 
   if not nid or not dob:
     return jsonify({
-        "error": "Please provide both 'nid' and 'dob' parameters.",
+        "error": (
+            "দয়া করে সঠিক নিয়মে nid এবং dob প্রদান করুন। যেমন:"
+            " /api?nid=YOUR_NID&dob=YYYY-MM-DD"
+        ),
         "API_OWNER": "DIPTO",
         "CHANNEL": "https://t.me/Xrror_404",
     }), 400
@@ -118,7 +116,7 @@ def query_nid():
     return jsonify(json_data)
   else:
     return jsonify({
-        "error": "Failed to solve captcha automatically!",
+        "error": "ক্যাপচা স্বয়ংক্রিয়ভাবে সমাধান করতে ব্যর্থ হয়েছে!",
         "API_OWNER": "DIPTO",
         "CHANNEL": "https://t.me/Xrror_404",
     }), 500

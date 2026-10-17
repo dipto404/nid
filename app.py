@@ -88,16 +88,13 @@ def home():
 
 @app.route("/api", methods=["GET"])
 def query_nid():
-  # শুধুমাত্র GET মেথডের মাধ্যমে nid ও dob ইনপুট নেওয়া হচ্ছে
   nid = request.args.get("nid")
   dob = request.args.get("dob")
 
   if not nid or not dob:
     return jsonify({
-        "error": (
-            "দয়া করে সঠিক নিয়মে nid এবং dob প্রদান করুন। যেমন:"
-            " /api?nid=YOUR_NID&dob=YYYY-MM-DD"
-        ),
+        "status": "error",
+        "message": "Please provide both 'nid' and 'dob' parameters.",
         "API_OWNER": "DIPTO",
         "CHANNEL": "https://t.me/Xrror_404",
     }), 400
@@ -107,16 +104,46 @@ def query_nid():
   if auto_solved_captcha and session:
     response_text = get_response_for_nid(nid, dob, auto_solved_captcha, session)
     try:
-      json_data = json.loads(response_text)
+      raw_json = json.loads(response_text)
     except json.JSONDecodeError:
-      json_data = {"response": response_text}
+      raw_json = {"response": response_text}
 
-    json_data["API_OWNER"] = "DIPTO"
-    json_data["CHANNEL"] = "https://t.me/Xrror_404"
-    return jsonify(json_data)
+    # আপনার চাওয়া নির্দিষ্ট সিরিয়াল ও স্ট্রাকচার অনুযায়ী সাজানো হলো
+    inner_data = raw_json.get("data", {})
+    ordered_inner_data = {
+        "name": inner_data.get("name", ""),
+        "nameEn": inner_data.get("nameEn", ""),
+        "nationalId": inner_data.get("nationalId", ""),
+        "dateOfBirth": inner_data.get("dateOfBirth", ""),
+        "pin": inner_data.get("pin", ""),
+        "old_nid": inner_data.get("old_nid", ""),
+        "voter_area": inner_data.get("voter_area", ""),
+        "birth_place": inner_data.get("birth_place", ""),
+        "fatherName": inner_data.get("fatherName", ""),
+        "motherName": inner_data.get("motherName", ""),
+        "gender": inner_data.get("gender", ""),
+        "genderEn": inner_data.get("genderEn", ""),
+        "religion": inner_data.get("religion", ""),
+        "religionEn": inner_data.get("religionEn", ""),
+    }
+
+    formatted_response = {
+        "status": "success",
+        "data": {
+            "code": raw_json.get("code", 200),
+            "success": raw_json.get("success", True),
+            "message": raw_json.get("message", "NID fetched successfully!"),
+            "data": ordered_inner_data,
+        },
+        "API_OWNER": "DIPTO",
+        "CHANNEL": "https://t.me/Xrror_404",
+    }
+
+    return jsonify(formatted_response)
   else:
     return jsonify({
-        "error": "ক্যাপচা স্বয়ংক্রিয়ভাবে সমাধান করতে ব্যর্থ হয়েছে!",
+        "status": "error",
+        "message": "Failed to solve captcha automatically!",
         "API_OWNER": "DIPTO",
         "CHANNEL": "https://t.me/Xrror_404",
     }), 500
